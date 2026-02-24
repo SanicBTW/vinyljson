@@ -1,0 +1,13 @@
+[
+    {
+        "metadata": ":json.property",
+        "params": ["name"],
+        "targets": ["TClassField"],
+        "doc": "Uses the given parameter as the target to serialize into and deserialize from."
+    },
+    {
+        "metadata": ":json.ignore",
+        "targets": ["TClassField"],
+        "doc": "Ignores the target field from ever being serialized and unserialized."
+    }
+]

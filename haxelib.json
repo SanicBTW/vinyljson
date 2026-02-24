@@ -2,9 +2,12 @@
 	"name": "vinyljson",
 	"license": "BSD",
 	"releasenote": "serializer, json.ignore and json.property metadatas",
-	"contributors": ["vinyldumb"],
+	"contributors": ["vinyldumb", "SanicBTW"],
 	"version": "1.0.0",
 	"dependencies": {
 		"hxjsonast": ""
+	},
+	"documentation": {
+		"metadata": "doc/metadata.json"
 	}
 }

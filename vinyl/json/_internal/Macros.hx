@@ -6,28 +6,6 @@ import haxe.macro.Expr.Field;
 
 class Macros
 {
-	/**
-	 * I hope someday they make it work properly...
-	 * @return Array<Field>
-	 */
-	public static macro function registerMetadatas()
-	{
-		Compiler.registerCustomMetadata({
-			metadata: ':json.ignore',
-			doc: 'TODO',
-			targets: [ClassField]
-		});
-
-		Compiler.registerCustomMetadata({
-			metadata: ':json.property',
-			doc: 'TODO',
-			params: ['name'],
-			targets: [ClassField]
-		});
-
-		// waiting for help so uhh
-	}
-
 	public static macro function addRtti():Array<Field>
 	{
 		final classRef = Context.getLocalClass();
