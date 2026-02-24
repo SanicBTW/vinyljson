@@ -25,10 +25,27 @@ class JsonToValueConverter
 
 			case JObject(fields):
 				var result = {}
+				var reqExtraParse:Bool = false;
 				for (field in fields)
 				{
+					if (field.name.indexOf("@") == 0) // should always begin with a @
+						reqExtraParse = true;
+
 					Reflect.setField(result, field.name, convert(field.value));
 				}
+
+				if (reqExtraParse)
+				{
+					// TODO
+					// just to be safe, even if the printed json has always the @ declaration at the beginning of the object, we want to avoid fixed indices
+					final typeDecl:Null<String> = Lambda.find(Reflect.fields(result), (k) -> StringTools.startsWith(k, "@"));
+					if (typeDecl == null)
+						throw new ArgumentException('typeDecl', "couldn't find a type declaration in the converted object, please check the appropiate @ usage");
+
+					final target:String = typeDecl.substring(1);
+					return cast structCoreParse(target, result);
+				}
+
 				return cast result;
 
 			case JArray(values):
@@ -63,6 +80,17 @@ class JsonToValueConverter
 		return struct2class(struct, c);
 	}
 
+	private static function structCoreParse(objType:String, struct:Dynamic):Dynamic
+	{
+		return switch (objType)
+		{
+			case "enum":
+				struct2enum(struct);
+			case _:
+				throw new ArgumentException('objType', 'invalid parse type $objType');
+		}
+	}
+
 	private static function struct2class<T>(struct:Dynamic, c:Class<T>):T
 	{
 		final cdef = Rtti.getRtti(c);
@@ -94,6 +122,19 @@ class JsonToValueConverter
 		return result;
 	}
 
+	private static function struct2enum(struct:Dynamic):EnumValue
+	{
+		final enumPath:String = Reflect.field(struct, "@enum");
+		final enumValue:String = Reflect.field(struct, "value");
+		final params:Array<Dynamic> = Reflect.hasField(struct, "params") ? Reflect.field(struct, "params") : [];
+
+		final resolvedEnum:Null<Enum<Dynamic>> = Type.resolveEnum(enumPath);
+		if (resolvedEnum == null)
+			throw new ArgumentException('@enum', 'couldn\'t resolve $enumPath, is it loaded?');
+
+		return resolvedEnum.createByName(enumValue, params);
+	}
+
 	private static function convertValue(ctype:CType, input:Dynamic):Any
 	{
 		final type = Type.typeof(input);
@@ -105,6 +146,13 @@ class JsonToValueConverter
 					throw new ArgumentException('input', 'Invalid input type $type');
 				}
 				return null;
+
+			// i dont think tint can be anything else than int okay?
+			case TInt:
+				if (!ctype.match(CAbstract('Int', [])))
+					throw new ArgumentException('input', 'Invalid input type $type');
+
+				return input;
 
 			case TFloat:
 				if (ctype.match(CAbstract('Int', [])))
@@ -162,6 +210,12 @@ class JsonToValueConverter
 					case _:
 						throw new ArgumentException('input', 'Invalid input type $type');
 				}
+
+			case TEnum(e):
+				// ctype is kinda useless? we already have the enum from the given type
+				// this is kinda hard actually, i dont know if i should resolve the value here or just return it since we already converted it before hand?
+				// TODO?
+				return input;
 
 			case _:
 				throw new ArgumentException('input', 'Invalid input type $type');

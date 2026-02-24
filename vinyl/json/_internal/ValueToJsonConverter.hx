@@ -52,6 +52,9 @@ class ValueToJsonConverter
 			case TClass(c) if (Rtti.hasRtti(c)):
 				return convertClass(input, c);
 
+			case TEnum(e):
+				return convertEnum(input, e);
+
 			case t:
 				throw new ArgumentException('input', 'Invalid value type $t');
 		}
@@ -69,6 +72,42 @@ class ValueToJsonConverter
 
 				return new JObjectField(name, createDummyPosition(), convert(value));
 			});
+
+		return new Json(JObject(fields), createDummyPosition());
+	}
+
+	private static function convertEnum<T>(input:T, e:Enum<T>):Json
+	{
+		// TODO
+		final inpAsValue:EnumValue = cast input;
+
+		final enumCtor = Type.enumConstructor(inpAsValue);
+		final params = Type.enumParameters(inpAsValue);
+
+		var fields:Array<JObjectField> = [
+			new JObjectField(
+				"@enum",
+				createDummyPosition(),
+				new Json(JString(e.getName()), createDummyPosition())
+			),
+			new JObjectField(
+				"value",
+				createDummyPosition(),
+				new Json(JString(enumCtor), createDummyPosition())
+			),
+		];
+
+		if (params.length > 0)
+		{
+			var paramsArray = params.map(p -> convert(p));
+			fields.push(
+				new JObjectField(
+					"params",
+					createDummyPosition(),
+					new Json(JArray(paramsArray), createDummyPosition())
+				)
+			);
+		}
 
 		return new Json(JObject(fields), createDummyPosition());
 	}

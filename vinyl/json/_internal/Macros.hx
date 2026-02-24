@@ -10,7 +10,7 @@ class Macros
 	 * I hope someday they make it work properly...
 	 * @return Array<Field>
 	 */
-	public static macro function registerMetadatas():Array<Field>
+	public static macro function registerMetadatas()
 	{
 		Compiler.registerCustomMetadata({
 			metadata: ':json.ignore',
@@ -25,7 +25,7 @@ class Macros
 			targets: [ClassField]
 		});
 
-		return Context.getBuildFields();
+		// waiting for help so uhh
 	}
 
 	public static macro function addRtti():Array<Field>
